@@ -29,6 +29,35 @@ app.use('*', cors())
 // Add timing middleware
 app.use('*', timing())
 
+// Detail endpoint
+app.get('/detail/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    // Read CSV data
+    const { lines } = await readCSVData()
+
+    // Find the line that starts with the given ID
+    const location = lines.find(line => line.startsWith(id + ';'))
+
+    if (!location) {
+      return c.json({ error: 'Location not found' }, 404)
+    }
+
+    // Parse the location data
+    const [locationId, name] = location.split(';')
+
+    return c.json({
+      data: {
+        id: locationId,
+        name: name
+      }
+    })
+  } catch (error) {
+    return c.json({ error: 'Internal server error' }, 500)
+  }
+})
+
 // Search endpoint
 app.get('/search', async (c) => {
   const searchTerm = c.req.query('term')
